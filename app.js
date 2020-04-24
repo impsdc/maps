@@ -4,7 +4,8 @@ let $adress = [];
 let map;
 let $location = document.getElementById("locationInput");
 let $error = document.getElementById("error");
-
+var bounds = new google.maps.LatLngBounds();
+let $coords = [];
 var markers = [];
 
 //check on submit
@@ -18,15 +19,18 @@ function add(e) {
   let $check = $adress.indexOf($value);
 
   if ($check === -1) {
+    console.log("go");
     $adress.push($value);
     $location.innerHTML = "";
     geocode($adress);
   } else {
+    console.log(yes);
     $error.innerHTML = "the adress is already in";
   }
 }
 
 async function geocode($list) {
+  //initalize the api request
   await axios
     .get("https://maps.googleapis.com/maps/api/geocode/json", {
       params: {
@@ -35,7 +39,6 @@ async function geocode($list) {
       },
     })
     .then(function (response) {
-      console.log(response);
       //formatted Adress
       let formattedAdress = response.data.results[0].formatted_address;
 
@@ -50,6 +53,7 @@ async function geocode($list) {
         "formattedAdresse"
       ).innerHTML += formattedAddressOutput;
 
+      //initialize markes array
       var marker = {
         coords: { lat: lat, lng: lng },
         icon:
@@ -60,27 +64,33 @@ async function geocode($list) {
       push($list);
     })
     .catch(function (error) {
+      //   $error.innerHTML = "Adresse pas valide";
       console.log(error);
     });
 }
 
+//initialize the map
 const push = ($list) => {
+  console.log($list);
   var options = {
     zoom: 1,
     center: { lat: 48.856614, lng: 2.3522219 },
   };
 
   var map = new google.maps.Map(document.getElementById("map"), options);
+
+  //in case of just one address
   $list.map((n) => initMap(markers, $list, map));
 
+  //if there are more than one adress, set up a line
   if ($list.length > 1) {
-    $coords = [];
-    for (i = 0; i < markers.length; i++) {
+    //get the object coords for every adress
+    for (let i = 0; i < markers.length; i++) {
       $coords.push(markers[i].coords);
     }
     var options = {
       zoom: 1,
-      center: { lat: 48.856614, lng: 2.3522219 },
+      center: markers[1].coords,
     };
 
     var map = new google.maps.Map(document.getElementById("map"), options);
@@ -94,6 +104,7 @@ const push = ($list) => {
     });
     console.log(line);
     line.setMap(map);
+    // map.fitBounds(bounds);
   }
 };
 
@@ -134,13 +145,3 @@ const initMap = (markers, list, map) => {
 };
 
 const moyenne = () => {};
-
-// Draw a line showing the straight distance between the markers
-
-// var flightPath = new google.maps.Polyline({
-//     path: flightPlanCoordinates,
-//     geodesic: true,
-//     strokeColor: '#FF0000',
-//     strokeOpacity: 1.0,
-//     strokeWeight: 2
-//   });
