@@ -14,6 +14,7 @@ document.getElementById("sub").addEventListener("click", add);
 
 function add(e) {
   e.preventDefault();
+  $error.innerHTML = "";
   //get value form
   let $value = $location.value;
   let $check = $adress.indexOf($value);
@@ -22,14 +23,14 @@ function add(e) {
     console.log("go");
     $adress.push($value);
     $location.innerHTML = "";
-    geocode($adress);
+    geocode($adress, $value);
   } else {
     console.log(yes);
     $error.innerHTML = "the adress is already in";
   }
 }
 
-async function geocode($list) {
+async function geocode($list, $value) {
   //initalize the api request
   await axios
     .get("https://maps.googleapis.com/maps/api/geocode/json", {
@@ -40,28 +41,35 @@ async function geocode($list) {
     })
     .then(function (response) {
       //formatted Adress
-      let formattedAdress = response.data.results[0].formatted_address;
+      console.log(response);
+      if (response.data.results == 0) {
+        let pos = $adress.indexOf($value);
+        let remove = $adress.splice(pos, 1);
+        $error.innerHTML = "L'adress n'est pas valide";
+      } else {
+        let formattedAdress = response.data.results[0].formatted_address;
 
-      let lat = response.data.results[0].geometry.location.lat;
-      let lng = response.data.results[0].geometry.location.lng;
+        let lat = response.data.results[0].geometry.location.lat;
+        let lng = response.data.results[0].geometry.location.lng;
 
-      let formattedAddressOutput = `<li class='list-group-item'>
+        let formattedAddressOutput = `<li class='list-group-item'>
                     adress : ${formattedAdress}<span class="ml-3 btn btn-danger">D</span>
                 </li>`;
 
-      document.getElementById(
-        "formattedAdresse"
-      ).innerHTML += formattedAddressOutput;
+        document.getElementById(
+          "formattedAdresse"
+        ).innerHTML += formattedAddressOutput;
 
-      //initialize markes array
-      var marker = {
-        coords: { lat: lat, lng: lng },
-        icon:
-          "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png",
-      };
-      markers.push(marker);
+        //initialize markes array
+        var marker = {
+          coords: { lat: lat, lng: lng },
+          icon:
+            "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png",
+        };
+        markers.push(marker);
 
-      push($list);
+        push($list);
+      }
     })
     .catch(function (error) {
       //   $error.innerHTML = "Adresse pas valide";
