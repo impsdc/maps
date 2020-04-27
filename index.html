@@ -35,19 +35,26 @@
     </div>
 
     <div class="d-flex justify-content-center">
-      <form id="form" class="col-md-3 card p-4">
-        <label for="locationIput">Enter an address</label>
+      <div id="form" class="col-md-3 card p-4">
+        <label for="locationIput" id="label">Enter an address</label>
         <input
           type="text"
           id="locationInput"
           class="form-control form-control-lg"
         />
         <br />
-        <button type="submit" id="sub" class="btn-block btn btn-primary">
+        <button id="sub" class="btn-block btn btn-primary">
           Submit
         </button>
         <p id="error"></p>
-      </form>
+        <div class="d-none" id="moreInfo">
+            <p>How do you want get there ?</p>
+            <button class="btn btn-primary m-1" id="choice" value="DRIVING">Car</button>
+            <button class="btn btn-primary m-1" id="choice" value="BICYCLING">Bike</button>
+            <button class="btn btn-primary m-1" id="choice" value="TRANSIT">Transit</button>
+            <button class="btn btn-primary m-1" id="choice" value="WALKING">Walk</button>
+        </div>
+      </div>
     </div>
 
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCd4vHMt0OwkbqNaAIHF2z4HV4HfMseMa8"></script>

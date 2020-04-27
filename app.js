@@ -3,33 +3,44 @@ var conf = config;
 let $adress = [];
 let map;
 let $location = document.getElementById("locationInput");
+let $label = document.getElementById("label");
 let $error = document.getElementById("error");
 var bounds = new google.maps.LatLngBounds();
 let $coords = [];
 var markers = [];
+let $moreInfo = document.getElementById("moreInfo")
 
 //check on submit
 // document.getElementById("form").addEventListener("submit", add);
 document.getElementById("sub").addEventListener("click", add);
 
 function add(e) {
-  e.preventDefault();
+
   $error.innerHTML = "";
   //get value form
   let $value = $location.value;
   let $check = $adress.indexOf($value);
 
-  if ($check === -1) {
-    //cheking if the address is already in
+  if ($check === -1) {  //cheking if the address is already in
+   
     $adress.push($value);
-    $location.innerHTML = "";
-    geocode($adress, $value);
+    if($adress.length === 2){ //when the second itinay is submit, ask the type of itinary
+        $moreInfo.className = 'd-flex flex-column';
+        document.getElementById("choice").addEventListener("click", function() {
+            let $params = document.getElementById("choice").value
+            $location.innerHTML = "";
+            geocode($adress, $value, $params);
+        })
+    }else{ 
+        $location.innerHTML = "";
+        geocode($adress, $value);
+    }
   } else {
     $error.innerHTML = "the adress is already in";
   }
 }
 
-async function geocode($list, $value) {
+async function geocode($list, $value, $params) {
   //initalize the api request
   await axios
     .get("https://maps.googleapis.com/maps/api/geocode/json", {
@@ -39,13 +50,13 @@ async function geocode($list, $value) {
       },
     })
     .then(function (response) {
-      //formatted Adress
-      console.log(response);
+
       if (response.data.results == 0) {
-        // checking if the address is valid
+        // checking if the address is valid for the api
         let pos = $adress.indexOf($value);
         let remove = $adress.splice(pos, 1);
-        $error.innerHTML = "L'adress n'est pas valide";
+
+        $error.innerHTML = "Adress unfindable";
       } else {
         let formattedAdress = response.data.results[0].formatted_address;
         let mainAdress =
@@ -68,7 +79,7 @@ async function geocode($list, $value) {
         };
         markers.push(marker);
 
-        push($list);
+        push($list, $params);
       }
     })
     .catch(function (error) {
@@ -77,7 +88,7 @@ async function geocode($list, $value) {
 }
 
 //initialize the map
-const push = ($list) => {
+const push = ($list, $params) => {
   var options = {
     zoom: 1,
     center: { lat: 48.856614, lng: 2.3522219 },
@@ -101,6 +112,20 @@ const push = ($list) => {
 
     var map = new google.maps.Map(document.getElementById("map"), options);
 
+      // Instantiate a directions service.
+  let directionsService = new google.maps.DirectionsService();
+  let directionsDisplay = new google.maps.DirectionsRenderer({
+  map: map,
+  });
+    calculateAndDisplayRoute(
+      directionsService,
+      directionsDisplay,
+      $coords[0],
+      $coords[1], 
+      $params
+    );
+
+    //initialize the polyline
     var line = new google.maps.Polyline({
       path: $coords,
       geodesic: true,
@@ -146,37 +171,37 @@ const initMap = (markers, map) => {
       });
     }
   }
+  prepareForItinary();
 };
 
-// function calculateAndDisplayRoute(
-//   directionsService,
-//   directionsDisplay,
-//   pointA,
-//   pointB
-// ) {
-//   directionsService.route(
-//     {
-//       origin: pointA,
-//       destination: pointB,
-//       travelMode: google.maps.TravelMode.DRIVING,
-//     },
-//     function (response, status) {
-//       if (status == google.maps.DirectionsStatus.OK) {
-//         directionsDisplay.setDirections(response);
-//       } else {
-//         window.alert("Directions request failed due to " + status);
-//       }
-//     }
-//   );
-// }
-//   // Instantiate a directions service.
-//   directionsService = new google.maps.DirectionsService();
-//   directionsDisplay = new google.maps.DirectionsRenderer({
-//   map: map,
-//   });
-//     calculateAndDisplayRoute(
-//       directionsService,
-//       directionsDisplay,
-//       $coords[0],
-//       $coords[1]
-//     );
+function prepareForItinary(){
+    //initalize html for itinary
+    $label.innerHTML = "Enter a second address to see the itinary";
+    document.getElementById("sub").innerHTML = "<button id='subForItinary'class='btn-block btn btn-primary'>Enter second address for itinary</button>";
+    document.getElementById("subForItinary").addEventListener("click", add)
+}
+
+
+function calculateAndDisplayRoute(
+  directionsService,
+  directionsDisplay,
+  pointA,
+  pointB, 
+  $params
+) {
+  directionsService.route(
+    {
+      origin: pointA,
+      destination: pointB,
+      travelMode: google.maps.TravelMode + '.' + $params,
+    },
+    function (response, status) {
+      if (status == google.maps.DirectionsStatus.OK) {
+        directionsDisplay.setDirections(response);
+        console.log(response)
+      } else {
+        window.alert("Directions request failed due to " + status);
+      }
+    }
+  );
+}
