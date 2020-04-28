@@ -22,7 +22,6 @@ function add(e) {
   let $check = $adress.indexOf($value);
 
   if ($check === -1) {  //cheking if the address is already in
-   
     $adress.push($value);
     if($adress.length === 2){ //when the second itinay is submit, ask the type of itinary
         $moreInfo.className = 'd-flex flex-column';
@@ -117,13 +116,36 @@ const push = ($list, $params) => {
   let directionsDisplay = new google.maps.DirectionsRenderer({
   map: map,
   });
-    calculateAndDisplayRoute(
-      directionsService,
-      directionsDisplay,
-      $coords[0],
-      $coords[1], 
-      $params
-    );
+    if($params === "DRIVING"){
+      calculateAndDisplayRouteForDriving(
+        directionsService,
+        directionsDisplay,
+        $coords[0],
+        $coords[1], 
+      );
+    }else if($params === "BICYCLING"){
+      calculateAndDisplayRouteForBicycling(
+        directionsService,
+        directionsDisplay,
+        $coords[0],
+        $coords[1], 
+      );
+    }else if ($params === "TRANSIT"){
+      calculateAndDisplayRouteForTransit(
+        directionsService,
+        directionsDisplay,
+        $coords[0],
+        $coords[1], 
+      );
+    }else if($params === "WALKING"){
+      calculateAndDisplayRouteForWalking(
+        directionsService,
+        directionsDisplay,
+        $coords[0],
+        $coords[1], 
+      );
+    }
+   
 
     //initialize the polyline
     var line = new google.maps.Polyline({
@@ -182,7 +204,7 @@ function prepareForItinary(){
 }
 
 
-function calculateAndDisplayRoute(
+function calculateAndDisplayRouteForDriving(
   directionsService,
   directionsDisplay,
   pointA,
@@ -193,7 +215,83 @@ function calculateAndDisplayRoute(
     {
       origin: pointA,
       destination: pointB,
-      travelMode: google.maps.TravelMode + '.' + $params,
+      // travelMode: google.maps.TravelMode + '.' + $params,
+      travelMode: google.maps.TravelMode.DRIVING
+    },
+    function (response, status) {
+      if (status == google.maps.DirectionsStatus.OK) {
+        directionsDisplay.setDirections(response);
+        console.log(response)
+      } else {
+        window.alert("Directions request failed due to " + status);
+      }
+    }
+  );
+}
+
+function calculateAndDisplayRouteForBicycling(
+  directionsService,
+  directionsDisplay,
+  pointA,
+  pointB, 
+  $params
+) {
+  directionsService.route(
+    {
+      origin: pointA,
+      destination: pointB,
+      // travelMode: google.maps.TravelMode + '.' + $params,
+      travelMode: google.maps.TravelMode.BYCYCLING
+    },
+    function (response, status) {
+      if (status == google.maps.DirectionsStatus.OK) {
+        directionsDisplay.setDirections(response);
+        console.log(response)
+      } else {
+        window.alert("Directions request failed due to " + status);
+      }
+    }
+  );
+}
+
+function calculateAndDisplayRouteForTransit(
+  directionsService,
+  directionsDisplay,
+  pointA,
+  pointB, 
+  $params
+) {
+  directionsService.route(
+    {
+      origin: pointA,
+      destination: pointB,
+      // travelMode: google.maps.TravelMode + '.' + $params,
+      travelMode: google.maps.TravelMode.TRANSIT
+    },
+    function (response, status) {
+      if (status == google.maps.DirectionsStatus.OK) {
+        directionsDisplay.setDirections(response);
+        console.log(response)
+      } else {
+        window.alert("Directions request failed due to " + status);
+      }
+    }
+  );
+}
+
+function calculateAndDisplayRouteForWalking(
+  directionsService,
+  directionsDisplay,
+  pointA,
+  pointB, 
+  $params
+) {
+  directionsService.route(
+    {
+      origin: pointA,
+      destination: pointB,
+      // travelMode: google.maps.TravelMode + '.' + $params,
+      travelMode: google.maps.TravelMode.WALKING
     },
     function (response, status) {
       if (status == google.maps.DirectionsStatus.OK) {
