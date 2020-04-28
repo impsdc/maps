@@ -1,5 +1,4 @@
-var conf = config;
-//Géo coding
+var conf = config; // for API KEY
 let $adress = [];
 let map;
 let $location = document.getElementById("locationInput");
@@ -9,9 +8,9 @@ var bounds = new google.maps.LatLngBounds();
 let $coords = [];
 var markers = [];
 let $moreInfo = document.getElementById("moreInfo")
+let $params =  
 
 //check on submit
-// document.getElementById("form").addEventListener("submit", add);
 document.getElementById("sub").addEventListener("click", add);
 
 function add(e) {
@@ -24,13 +23,18 @@ function add(e) {
   if ($check === -1) {  //cheking if the address is already in
     $adress.push($value);
     if($adress.length === 2){ //when the second itinay is submit, ask the type of itinary
-        $moreInfo.className = 'd-flex flex-column';
-        document.getElementById("choice").addEventListener("click", function() {
-            let $params = document.getElementById("choice").value
-            $location.innerHTML = "";
+        $moreInfo.className = 'd-flex flex-column'
+        $location.value = "";
+          for (var i = 0 ; i <document.querySelectorAll("#choice").length; i++) {
+            document.querySelectorAll("#choice")[i].addEventListener('click', function(){
+              let $params = this.value
+              
             geocode($adress, $value, $params);
-        })
-    }else{ 
+            }) ; 
+          }
+            
+
+    }else{ // first address
         $location.innerHTML = "";
         geocode($adress, $value);
     }
@@ -44,37 +48,39 @@ async function geocode($list, $value, $params) {
   await axios
     .get("https://maps.googleapis.com/maps/api/geocode/json", {
       params: {
-        address: $list[$list.length - 1],
+        address: $list[$list.length - 1], //request fot last adress pushed
         key: config.APIKEY,
       },
     })
     .then(function (response) {
 
       if (response.data.results == 0) {
+
         // checking if the address is valid for the api
         let pos = $adress.indexOf($value);
         let remove = $adress.splice(pos, 1);
-
         $error.innerHTML = "Adress unfindable";
+
       } else {
-        let formattedAdress = response.data.results[0].formatted_address;
-        let mainAdress =
-          response.data.results[0].address_components[0].long_name;
-        let lat = response.data.results[0].geometry.location.lat;
-        let lng = response.data.results[0].geometry.location.lng;
 
-        let formattedAddressOutput = `<li class='list-group-item'>
-                    adress : ${formattedAdress}<span class="ml-3 btn btn-danger" id="suppr">D</span>
-                </li>`;
+          let formattedAdress = response.data.results[0].formatted_address;
+          let mainAdress =
+            response.data.results[0].address_components[0].long_name;
+          let lat = response.data.results[0].geometry.location.lat;
+          let lng = response.data.results[0].geometry.location.lng;
 
-        document.getElementById(
-          "formattedAdresse"
-        ).innerHTML += formattedAddressOutput;
+          let formattedAddressOutput = `<li class='list-group-item'>
+                      adress : ${formattedAdress}
+                  </li>`;
 
-        //initialize markers array
-        var marker = {
-          coords: { lat: lat, lng: lng },
-          title: mainAdress,
+          document.getElementById(
+            "formattedAdresse"
+          ).innerHTML += formattedAddressOutput;
+
+          //initialize markers array
+          var marker = {
+            coords: { lat: lat, lng: lng },
+            title: mainAdress,
         };
         markers.push(marker);
 
@@ -112,10 +118,11 @@ const push = ($list, $params) => {
     var map = new google.maps.Map(document.getElementById("map"), options);
 
       // Instantiate a directions service.
-  let directionsService = new google.maps.DirectionsService();
-  let directionsDisplay = new google.maps.DirectionsRenderer({
-  map: map,
-  });
+    let directionsService = new google.maps.DirectionsService();
+    let directionsDisplay = new google.maps.DirectionsRenderer({
+      map: map,
+    });
+
     if($params === "DRIVING"){
       calculateAndDisplayRouteForDriving(
         directionsService,
@@ -131,6 +138,7 @@ const push = ($list, $params) => {
         $coords[1], 
       );
     }else if ($params === "TRANSIT"){
+      console.log('transit')
       calculateAndDisplayRouteForTransit(
         directionsService,
         directionsDisplay,
@@ -145,7 +153,6 @@ const push = ($list, $params) => {
         $coords[1], 
       );
     }
-   
 
     //initialize the polyline
     var line = new google.maps.Polyline({
@@ -199,7 +206,8 @@ const initMap = (markers, map) => {
 function prepareForItinary(){
     //initalize html for itinary
     $label.innerHTML = "Enter a second address to see the itinary";
-    document.getElementById("sub").innerHTML = "<button id='subForItinary'class='btn-block btn btn-primary'>Enter second address for itinary</button>";
+    $location.value = "";
+    document.getElementById("subInput").innerHTML = "<button id='subForItinary'class='btn-block btn btn-primary'>Enter second address for itinary</button>";
     document.getElementById("subForItinary").addEventListener("click", add)
 }
 
@@ -209,7 +217,6 @@ function calculateAndDisplayRouteForDriving(
   directionsDisplay,
   pointA,
   pointB, 
-  $params
 ) {
   directionsService.route(
     {
@@ -234,14 +241,13 @@ function calculateAndDisplayRouteForBicycling(
   directionsDisplay,
   pointA,
   pointB, 
-  $params
 ) {
   directionsService.route(
     {
       origin: pointA,
       destination: pointB,
       // travelMode: google.maps.TravelMode + '.' + $params,
-      travelMode: google.maps.TravelMode.BYCYCLING
+      travelMode: google.maps.TravelMode.BICYCLING
     },
     function (response, status) {
       if (status == google.maps.DirectionsStatus.OK) {
@@ -259,7 +265,6 @@ function calculateAndDisplayRouteForTransit(
   directionsDisplay,
   pointA,
   pointB, 
-  $params
 ) {
   directionsService.route(
     {
@@ -284,7 +289,6 @@ function calculateAndDisplayRouteForWalking(
   directionsDisplay,
   pointA,
   pointB, 
-  $params
 ) {
   directionsService.route(
     {
